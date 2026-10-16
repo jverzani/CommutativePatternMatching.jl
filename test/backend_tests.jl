@@ -57,5 +57,10 @@ function backend_tests()
         # without `==`, which is not a Bool for SymbolicUtils
         @test matchone(:(sqrt(~x)), S(:(a ^ (2b)))) === nothing
         @test binds(matchone(:(sqrt(~x)), S(:(a ^ (1//2)))), :x => S(:a))
+
+        # a quotient against a quotient, or its canonical form, as products of
+        # powers: 1/(x * log(x)) is (log(x))^(-1) / x
+        @test any(σ -> isequal(CPM.unwrap_const(σ[:p]), -1) && isequal(σ[:x], S(:x)) && isequal(σ[:u], S(:(log(x)))),
+                  eachm(:((~u)^(~!p) / ~x), S(:(1 / (x * log(x))))))
     end
 end

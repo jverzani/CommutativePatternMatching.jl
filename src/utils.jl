@@ -319,6 +319,29 @@ end
 
 
 # invert an expr to regularize a/b --> a*b^{-1}
+# a rule `u / v` as the factors `u` (unless 1) and `vᵢ^-1` for each factor `vᵢ` of `v`
+function _rule_as_powers(rule)
+    u, v = arguments(rule)
+    vs = _is_operation(*)(v) ? arguments(v) : (v,)
+    vs′ = map(_invert_expr, vs)
+    u == 1 ? vs′ : Any[u, vs′...]
+end
+
+# a subject `u / v` likewise: the factors of `u` (dropping a 1), and for each
+# factor of `v` its inverse, `f^-1`, or `b^(-k)` for a power `b^k`
+_factors(x) = iscall(x) && Symbol(operation(x)) === :* ? arguments(x) : (x,)
+function _invert_data(f)
+    if iscall(f) && Symbol(operation(f)) === :^
+        b, k = arguments(f)
+        return sterm(^, (b, sterm(-, (k,))))
+    end
+    sterm(^, (f, -1))
+end
+function _data_as_powers(data)
+    u, v = arguments(data)
+    Any[(f for f in _factors(u) if !_isone(_unwrap_const(f)))..., map(_invert_data, _factors(v))...]
+end
+
 function _invert_expr(pat)
     if isa(pat, Integer)
         return pterm(:^, (pat, -1.0))

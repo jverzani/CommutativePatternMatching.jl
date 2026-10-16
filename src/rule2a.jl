@@ -133,6 +133,7 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
     if opᵣ ∈ (:^, :sqrt, :exp) ||
         (opᵣ, 𝑜𝑝ₛ) ∈ ((:/,:^),
                       (:/,:*),
+                      (:/,:/),
                       )
 
         return different_powers(data, rule, σs; wrap_commutative)
@@ -373,16 +374,17 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
     elseif (opᵣ, opₛ) == (:/, :*)
         # rule is / but may be canonicalized to
         # turn rule into ^-1 terms and check commutatively
+        return check_commutative(arg_data, _rule_as_powers(rule), σs; wrap_commutative)
 
-        u,v = arguments(rule)
-        vs = _is_operation(*)(v) ? arguments(v) : (v,)
-        vs′ = map(_invert_expr, vs)
-        arg_rule′ = if u == 1
-            vs′
-        else
-            Any[u, vs′...]
-        end
-        return check_commutative(arg_data, arg_rule′, σs; wrap_commutative)
+    elseif (opᵣ, opₛ) == (:/, :/)
+        # the matches numerator to numerator and denominator to denominator,
+        # and those comparing both as products of powers: e.g. the rule
+        # `(~u)^(~p) / ~x` and the subject `1 / (x * log(x))`, as
+        # `[(~u)^(~p), (~x)^-1]` and `[x^-1, log(x)^-1]`. Both are kept, as a
+        # match of one kind may conflict with the rest of the pattern.
+        σ′s = ceoaa(arg_data, arg_rule, σs; wrap_commutative)
+        σ″s = check_commutative(_data_as_powers(data), _rule_as_powers(rule), σs; wrap_commutative)
+        return unique!(vcat(σ′s, σ″s))
 
     elseif (opᵣ, opₛ) == (:/, :^)
         # :(1/~x^~n) ~ x^(-n)

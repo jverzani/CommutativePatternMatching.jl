@@ -1,7 +1,10 @@
 module CommutativePatternMatching
 
+export @pattern
+
 include("utils.jl")
 include("rule2a.jl")
+include("pattern.jl")
 
 
 # interface to be extended by a package

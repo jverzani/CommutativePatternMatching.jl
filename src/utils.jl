@@ -8,7 +8,6 @@ const NO_MATCH = ∅ = MatchDict[]
 𝑀 = Vector{MatchDict}
 
 
-const PREDICATE_FN_CACHE = IdDict{Any, Any}()
 
 ## unwrap a constant to a Julia value; extend for symbolic types
 unwrap_const(x::Any) = x
@@ -208,52 +207,51 @@ eq_expr(a::Expr, b::Expr) = syntactic_match(_unwrap_const(a), _unwrap_const(b))
 eq_expr(a::Any, b::Symbol) = isequal(_unwrap_const(a), _unwrap_const(b)) ||
     (!iscall(a) && !isa(a, Symbol) && Symbol(string(a)) === b)
 
-## to evaluate a guard. (Where is the question?)
-function _resolve_predicate(pred)
-    haskey(PREDICATE_FN_CACHE, pred) && return PREDICATE_FN_CACHE[pred]
+## -- evaluate a guard
+#
+# A guard is best given as a value -- a function spliced into the pattern,
+# as `@pattern` does, or as with `:(~x::$pred)`. Such a guard is called
+# directly.
+#
+# A guard given by name or as an expression in a quoted pattern
+# (`:(~x::isfoo)`) is looked up in `Main` and `Base`, not in the module
+# which wrote the pattern; use `@pattern` for that. A guard which can not be
+# resolved, or which errors, fails the match.
 
-    pred_fn = pred
-    if pred isa Symbol
-        for M ∈ (@__MODULE__, Main, Base)
-            if isdefined(M, pred)
-                pred_fn = getfield(M, pred)
-                break
-            end
-        end
-        isa(pred_fn, Symbol) && (pred_fn = Core.eval(Main, pred))
-    elseif pred isa Expr
-        for M ∈ (@__MODULE__, Main, Base)
-            try
-                pred_fn = Core.eval(M, pred)
-                break
-            catch err
-                # fall through if this expression is not yet resolvable in this module
-            end
-        end
+_resolve_predicate(pred) = pred
+
+function _resolve_predicate(pred::Symbol)
+    for M ∈ (Main, Base)
+        isdefined(M, pred) && return getfield(M, pred)
     end
+    return nothing
+end
 
+# guards given as expressions (e.g. `!=(-1)`) are evaluated once and cached,
+# keyed by the identity of the expression. A failure is not cached, so a
+# guard defined later will be found.
+const PREDICATE_FN_CACHE = IdDict{Expr, Any}()
+
+function _resolve_predicate(pred::Expr)
+    haskey(PREDICATE_FN_CACHE, pred) && return PREDICATE_FN_CACHE[pred]
+    pred_fn = try
+        Core.eval(Main, pred)
+    catch err
+        return nothing
+    end
     PREDICATE_FN_CACHE[pred] = pred_fn
     return pred_fn
 end
 
 function _evalguard(pred, data)
-    pred_fn = _resolve_predicate(pred)
-    if pred_fn isa Function
-        return try
-            Base.invokelatest(pred_fn, _unwrap_const(data))
-        catch err
-            false
-        end
-    end
-
+    # look up in the latest world, as the guard may be defined after this
+    # code was compiled
+    pred_fn = Base.invokelatest(_resolve_predicate, pred)
+    pred_fn === nothing && return false
     try
-        Base.invokelatest(eval(pred), _unwrap_const(data))
+        Base.invokelatest(pred_fn, _unwrap_const(data)) === true
     catch err
-        try
-            return invokelatest(Main.eval(pred), _unwrap_const(data))
-        catch err
-            false
-        end
+        false
     end
 end
 
@@ -431,37 +429,6 @@ function varname(x::Expr)
 end
 
 ## -- work with guards
-# return true *if* either var has no predicate or
-# predicate(data) is true
-# use like pass_any_guard(var, data) || return ∅
-# XXX over complicated by co-pilot?
-function pass_any_guard(var, data)
-    !has_predicate(var) && return true
-
-    pred = get_predicate(var)
-    pred_fn = _resolve_predicate(pred)
-
-    # Avoid re-evaluating user predicates repeatedly when they are already callables.
-    if pred_fn isa Function
-        return try
-            Base.invokelatest(pred_fn, _unwrap_const(data))
-        catch err
-            false
-        end
-    end
-
-    # Fallback for unusual dynamic forms.
-    try
-        return Base.invokelatest(eval(pred), _unwrap_const(data))
-    catch err
-        try
-            return invokelatest(Main.eval(pred), _unwrap_const(data))
-        catch err
-            false
-        end
-    end
-end
-
 # Does wildcard have a predicate?
 has_predicate(::Any)::Bool = false
 has_predicate(x::Symbol)::Bool = false

@@ -57,5 +57,23 @@ function backend_tests()
         # without `==`, which is not a Bool for SymbolicUtils
         @test matchone(:(sqrt(~x)), S(:(a ^ (2b)))) === nothing
         @test binds(matchone(:(sqrt(~x)), S(:(a ^ (1//2)))), :x => S(:a))
+
+        # a quotient against a quotient, or its canonical form, as products of
+        # powers: 1/(x * log(x)) is (log(x))^(-1) / x
+        @test any(σ -> isequal(CPM.unwrap_const(σ[:p]), -1) && isequal(σ[:x], S(:x)) && isequal(σ[:u], S(:(log(x)))),
+                  eachm(:((~u)^(~!p) / ~x), S(:(1 / (x * log(x))))))
+
+        # a product of powers against a quotient with a product denominator
+        @test has_match(eachm(:((~u)^(~m) * (~v)^(~n) * (~w)^(~!p)), S(:((x + 3) / ((x - 1) * (x + 1)^2)))),
+                        :u => S(:(x - 1)), :m => -1, :v => S(:(x + 1)), :n => -2, :w => S(:(x + 3)), :p => 1)
+
+        # a numeric factor in a quotient's denominator is inverted as a number
+        q = S(:(1 / (2 * (x + 1))))
+        if Symbol(operation(q)) === :/
+            @test has_match(eachm(:((~u)^(~m) * ~c), q), :u => S(:(x + 1)), :m => -1, :c => 1//2)
+        end
+
+        # 1/sqrt(u) against u^(-1//2), as SimpleExpressions keeps it
+        @test binds(matchone(:(1 / sqrt(~u)), S(:((a + b) ^ (-1//2)))), :u => S(:(a + b)))
     end
 end

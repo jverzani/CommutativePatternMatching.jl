@@ -133,6 +133,7 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
     if opᵣ ∈ (:^, :sqrt, :exp) ||
         (opᵣ, 𝑜𝑝ₛ) ∈ ((:/,:^),
                       (:/,:*),
+                      (:/,:/),
                       )
 
         return different_powers(data, rule, σs; wrap_commutative)
@@ -373,16 +374,17 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
     elseif (opᵣ, opₛ) == (:/, :*)
         # rule is / but may be canonicalized to
         # turn rule into ^-1 terms and check commutatively
+        return check_commutative(arg_data, _rule_as_powers(rule), σs; wrap_commutative)
 
-        u,v = arguments(rule)
-        vs = _is_operation(*)(v) ? arguments(v) : (v,)
-        vs′ = map(_invert_expr, vs)
-        arg_rule′ = if u == 1
-            vs′
-        else
-            Any[u, vs′...]
-        end
-        return check_commutative(arg_data, arg_rule′, σs; wrap_commutative)
+    elseif (opᵣ, opₛ) == (:/, :/)
+        # the matches numerator to numerator and denominator to denominator,
+        # and those comparing both as products of powers: e.g. the rule
+        # `(~u)^(~p) / ~x` and the subject `1 / (x * log(x))`, as
+        # `[(~u)^(~p), (~x)^-1]` and `[x^-1, log(x)^-1]`. Both are kept, as a
+        # match of one kind may conflict with the rest of the pattern.
+        σ′s = ceoaa(arg_data, arg_rule, σs; wrap_commutative)
+        σ″s = check_commutative(_data_as_powers(data), _rule_as_powers(rule), σs; wrap_commutative)
+        return unique!(vcat(σ′s, σ″s))
 
     elseif (opᵣ, opₛ) == (:/, :^)
         # :(1/~x^~n) ~ x^(-n)
@@ -400,17 +402,14 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
             end
 
             b′ = pterm(:^, (u, v′))
-            if a == 1
-                rule′ = b′
-            else
-                rule′ = pterm(:*, (a, b′))
-            end
+        elseif is_operation(:sqrt)(b) # 1/sqrt(u) is u^(-1//2)
+            # the exponent as a value: it compares equal to a symbolic -1/2
+            b′ = pterm(:^, (only(arguments(b)), -1//2))
         else
-            rule′ = Expr(:call, :^, b, -1)
+            b′ = Expr(:call, :^, b, -1)
         end
-        if !(isa(a, Number) && isone(a))
-            rule′ = Expr(:call, :*, a, rule′)
-        end
+        # multiply by a once
+        rule′ = (isa(a, Number) && isone(a)) ? b′ : Expr(:call, :*, a, b′)
         return check_expr_r(data, rule′, σs; wrap_commutative)
 
     #end
@@ -429,48 +428,11 @@ function neim_rewrite(data, rule)
 
         neim_pass = true
 
-        n = arg_data[1]
-        d = arg_data[2]
-        # then push the denominator of data up with negative power
-        sostituto = Any[]
-        if iscall(d) && opₛ == :^ #(operation(d)==^)
-
-            a, b, c... =  arg_data
-            val = sterm(^, (a,b))
-            push!(sostituto, val)
-
-        elseif iscall(d) && opₛ == :*
-            # push!(sostituto, map(x->x^-1,arguments(d))...)
-            for factor in arguments(d)
-                val = sterm(^, (factor, -1))
-                push!(sostituto, val)
-            end
-        elseif iscall(d) && Symbol(operation(d)) == :^
-            a,b = arguments(d)
-            m = sterm(-, (b,))
-            val = sterm(^, (a, m))
-            push!(sostituto, val)
-        else
-            val = sterm(^, (d, -1))
-            push!(sostituto, val)
-        end
-
-        new_arg_data = Any[]
-
-        if iscall(n)
-            if Symbol(operation(n)) === :*
-                append!(new_arg_data, arguments(n))
-            else
-                push!(new_arg_data, n)
-            end
-        elseif !_isone(n)
-            push!(new_arg_data, n)
-            # else dont push anything bc *1 gets canceled
-        end
-
-        append!(new_arg_data, sostituto)
-
-        arg_data = new_arg_data
+        # the numerator's factors, then each factor of the denominator with a
+        # negative power. (The denominator was tested with the data's own
+        # operation, always `/` here, so a product denominator was inverted
+        # as a whole, giving too few factors.)
+        arg_data = _data_as_powers(data)
 
         # printdb(4,"Applying neim trick, new arg_data is $arg_data")
     end

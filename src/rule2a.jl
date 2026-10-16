@@ -402,17 +402,14 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
             end
 
             b′ = pterm(:^, (u, v′))
-            if a == 1
-                rule′ = b′
-            else
-                rule′ = pterm(:*, (a, b′))
-            end
+        elseif is_operation(:sqrt)(b) # 1/sqrt(u) is u^(-1//2)
+            # the exponent as a value: it compares equal to a symbolic -1/2
+            b′ = pterm(:^, (only(arguments(b)), -1//2))
         else
-            rule′ = Expr(:call, :^, b, -1)
+            b′ = Expr(:call, :^, b, -1)
         end
-        if !(isa(a, Number) && isone(a))
-            rule′ = Expr(:call, :*, a, rule′)
-        end
+        # multiply by a once
+        rule′ = (isa(a, Number) && isone(a)) ? b′ : Expr(:call, :*, a, b′)
         return check_expr_r(data, rule′, σs; wrap_commutative)
 
     #end

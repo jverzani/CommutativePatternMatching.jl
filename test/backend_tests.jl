@@ -62,5 +62,8 @@ function backend_tests()
         # powers: 1/(x * log(x)) is (log(x))^(-1) / x
         @test any(σ -> isequal(CPM.unwrap_const(σ[:p]), -1) && isequal(σ[:x], S(:x)) && isequal(σ[:u], S(:(log(x)))),
                   eachm(:((~u)^(~!p) / ~x), S(:(1 / (x * log(x))))))
+
+        # 1/sqrt(u) against u^(-1//2), as SimpleExpressions keeps it
+        @test binds(matchone(:(1 / sqrt(~u)), S(:((a + b) ^ (-1//2)))), :u => S(:(a + b)))
     end
 end

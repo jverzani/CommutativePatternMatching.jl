@@ -11,3 +11,4 @@ CommutativePatternMatching = {path = ".."}
 
 [compat]
 SymbolicUtils = "4"
+TermInterface = "2.0.0"

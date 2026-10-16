@@ -1,0 +1,10 @@
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.13.0"
+manifest_format = "2.1"
+project_hash = "d921ac964a5089c304c59a0eab80dd206017906f"
+
+[[deps.CommutativePatternMatching]]
+path = "."
+uuid = "a5619ad1-7b8c-4723-92a4-4e9a75a52c0f"
+version = "1.0.0-DEV"

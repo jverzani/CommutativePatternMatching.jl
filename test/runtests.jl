@@ -1,6 +1,16 @@
 using CommutativePatternMatching
 using Test
 
+const CPM = CommutativePatternMatching
+
+include("backends.jl")
+include("helpers.jl")
+include("shared_tests.jl")
+include("backend_tests.jl")
+
 @testset "CommutativePatternMatching.jl" begin
-    # Write your tests here.
+    @testset "$B" for B ∈ BACKENDS
+        shared_tests(B)
+    end
+    backend_tests()
 end

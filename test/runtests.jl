@@ -8,6 +8,7 @@ include("helpers.jl")
 include("shared_tests.jl")
 include("backend_tests.jl")
 include("guard_tests.jl")
+include("rule_tests.jl")
 
 @testset "CommutativePatternMatching.jl" begin
     @testset "$B" for B ∈ BACKENDS
@@ -15,4 +16,5 @@ include("guard_tests.jl")
     end
     backend_tests()
     guard_tests()
+    rule_tests()
 end

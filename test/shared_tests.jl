@@ -211,6 +211,6 @@ function shared_tests(B::Backend)
 
     @testset "_match" begin
         @test binds(CPM._match(:(sin(~x)), S(:(sin(a)))), :x => a)
-        @test_throws Exception CPM._match(:(sin(~x)), S(:(cos(a))))
+        @test CPM._match(:(sin(~x)), S(:(cos(a)))) === nothing
     end
 end

@@ -220,12 +220,15 @@ eq_expr(a::Any, b::Symbol) = isequal(_unwrap_const(a), _unwrap_const(b)) ||
 
 _resolve_predicate(pred) = pred
 
-function _resolve_predicate(pred::Symbol)
+# a name, as used in a quoted pattern or template, or `nothing`
+function _resolve_name(x::Symbol)
     for M ∈ (Main, Base)
-        isdefined(M, pred) && return getfield(M, pred)
+        isdefined(M, x) && return getfield(M, x)
     end
     return nothing
 end
+
+_resolve_predicate(pred::Symbol) = _resolve_name(pred)
 
 # guards given as expressions (e.g. `!=(-1)`) are evaluated once and cached,
 # keyed by the identity of the expression. A failure is not cached, so a

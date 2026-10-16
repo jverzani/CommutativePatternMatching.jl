@@ -350,7 +350,8 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
     elseif opᵣ === :sqrt
         if (opₛ === :sqrt)
             tocheck = arg_data # normal checks
-        elseif (opₛ === :^) && (_unwrap_const(arg_data[2]) ∈ (1//2, :(1//2))) #1//2)
+        # `isequal`, not `∈`: `==` need not return a Bool for a symbolic exponent
+        elseif (opₛ === :^) && any(isequal(_unwrap_const(arg_data[2])), (1//2, :(1//2)))
             tocheck = (b,)
         else
             return MatchDict[]

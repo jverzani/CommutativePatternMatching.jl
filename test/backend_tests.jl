@@ -52,5 +52,10 @@ function backend_tests()
         # a - b is stored as a sum
         @test matchone(:(~x - ~y), S(:(a - b))) === nothing
         @test has_match(eachm(:(~x + ~y), S(:(a - b))), :x => S(:a), :y => S(:(-b)))
+
+        # a power with a symbolic exponent is compared to 1//2 for `sqrt`
+        # without `==`, which is not a Bool for SymbolicUtils
+        @test matchone(:(sqrt(~x)), S(:(a ^ (2b)))) === nothing
+        @test binds(matchone(:(sqrt(~x)), S(:(a ^ (1//2)))), :x => S(:a))
     end
 end

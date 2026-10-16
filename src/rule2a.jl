@@ -428,48 +428,11 @@ function neim_rewrite(data, rule)
 
         neim_pass = true
 
-        n = arg_data[1]
-        d = arg_data[2]
-        # then push the denominator of data up with negative power
-        sostituto = Any[]
-        if iscall(d) && opₛ == :^ #(operation(d)==^)
-
-            a, b, c... =  arg_data
-            val = sterm(^, (a,b))
-            push!(sostituto, val)
-
-        elseif iscall(d) && opₛ == :*
-            # push!(sostituto, map(x->x^-1,arguments(d))...)
-            for factor in arguments(d)
-                val = sterm(^, (factor, -1))
-                push!(sostituto, val)
-            end
-        elseif iscall(d) && Symbol(operation(d)) == :^
-            a,b = arguments(d)
-            m = sterm(-, (b,))
-            val = sterm(^, (a, m))
-            push!(sostituto, val)
-        else
-            val = sterm(^, (d, -1))
-            push!(sostituto, val)
-        end
-
-        new_arg_data = Any[]
-
-        if iscall(n)
-            if Symbol(operation(n)) === :*
-                append!(new_arg_data, arguments(n))
-            else
-                push!(new_arg_data, n)
-            end
-        elseif !_isone(n)
-            push!(new_arg_data, n)
-            # else dont push anything bc *1 gets canceled
-        end
-
-        append!(new_arg_data, sostituto)
-
-        arg_data = new_arg_data
+        # the numerator's factors, then each factor of the denominator with a
+        # negative power. (The denominator was tested with the data's own
+        # operation, always `/` here, so a product denominator was inverted
+        # as a whole, giving too few factors.)
+        arg_data = _data_as_powers(data)
 
         # printdb(4,"Applying neim trick, new arg_data is $arg_data")
     end

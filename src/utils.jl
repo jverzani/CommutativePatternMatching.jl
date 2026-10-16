@@ -331,6 +331,10 @@ end
 # factor of `v` its inverse, `f^-1`, or `b^(-k)` for a power `b^k`
 _factors(x) = iscall(x) && Symbol(operation(x)) === :* ? arguments(x) : (x,)
 function _invert_data(f)
+    # a number, possibly symbolic (SymbolicUtils keeps sqrt(1)), is inverted as a
+    # number: a term `c^-1` with an integer `c` would raise a DomainError
+    c = _unwrap_const(f)
+    isa(c, Number) && return isa(c, Integer) ? 1 // c : inv(c)
     if iscall(f) && Symbol(operation(f)) === :^
         b, k = arguments(f)
         return sterm(^, (b, sterm(-, (k,))))

@@ -32,8 +32,8 @@ jobs:
           - x64
         include:
           - version: '1.13'
-            os: macos-15-intel
-            arch: x64
+            os: macos-latest
+            arch: aarch64
           - version: '1.13'
             os: windows-latest
             arch: x64

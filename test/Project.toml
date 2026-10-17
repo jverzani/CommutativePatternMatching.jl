@@ -10,4 +10,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 CommutativePatternMatching = {path = ".."}
 
 [compat]
+SymEngine = "0.13.2"
 SymbolicUtils = "4"
+TermInterface = "2.0.0"

@@ -59,12 +59,12 @@ end
 ## matches are ImmutableDicts
 match_dict() = MatchDict()
 
-function match_dict(kvs::Pair...)::M
+function match_dict(@nospecialize(kvs::Pair...))::M
     σ = MatchDict()
     match_dict(σ, kvs...)
 end
 
-function match_dict(σ::MatchDict, kvs::Pair...)::M
+function match_dict(σ::MatchDict, @nospecialize(kvs::Pair...))::M
     for (k,v) ∈ kvs
         v = isa(v,Number) ? unwrap_const(v) : v
         if haskey(σ, k)
@@ -129,7 +129,7 @@ function _merge_single(σs::𝑀, σ′::M)::𝑀
 end
 
 ## AI generated union_merge with k=>v
-function _merge_single_expr(σs, k, v)
+function _merge_single_expr(σs, k, @nospecialize(v))
     σ = match_dict(k => v)
     _merge_single(σs, σ)
 end
@@ -158,7 +158,7 @@ function _split_segments(arg_rule)
     return seg, notseg, seg_positions
 end
 
-function _tuple_without_indices(arg_data, ind, n)
+function _tuple_without_indices(@nospecialize(arg_data), ind, n)
     vals = Any[]
     sizehint!(vals, n - length(ind))
     k = 1
@@ -341,7 +341,7 @@ function _invert_data(f)
     end
     sterm(^, (f, -1))
 end
-function _data_as_powers(data)
+function _data_as_powers(@nospecialize(data))
     u, v = arguments(data)
     Any[(f for f in _factors(u) if !_isone(_unwrap_const(f)))..., map(_invert_data, _factors(v))...]
 end

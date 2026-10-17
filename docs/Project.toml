@@ -1,6 +1,10 @@
 [deps]
 CommutativePatternMatching = "a5619ad1-7b8c-4723-92a4-4e9a75a52c0f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MaterialDocs = "10bdffc8-969c-4dd4-83f3-742518eccd6b"
 
 [sources]
 CommutativePatternMatching = {path = ".."}
+
+[compat]
+Documenter = "1.19.0"

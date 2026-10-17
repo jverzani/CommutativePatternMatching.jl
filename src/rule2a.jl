@@ -26,8 +26,6 @@ A pattern to match against has wildcards. We have:
 * ~~x: match 0, 1, or more arguments (returns a tuple); A segment (star) variable (`is_segment`)
 * ~~~x: match 1 or more arguments (returns a tuple); A plus variable (`is_plus`)
 
-With `wrap_commutative=true`, a segment of either kind within a commutative operation binds to a term (`a + b`) rather than a tuple (`(a, b)`); an empty match is still `()`.
-
 A pattern can only have one wildcard of a given name (no ~x + ~~x, say).
 
 # test cases -- AssociativeCommutativePatternMatching uses associativity in its considerations (2,4) and full enumeration when there are multiple segments (6, 7). The Rule1 (from SymbolicIntegration) doesn't do segments right (in my mind)
@@ -52,24 +50,21 @@ A pattern can only have one wildcard of a given name (no ~x + ~~x, say).
 # TODO ~a*(~b*~c) currently will not match a*b*c . a fix is possible
 
 # for when the rule contains a symbol, like ℯ, or a literal number
-function check_expr_r(data, rule::Real, σs::𝑀; kwargs...)::𝑀
+function check_expr_r(data, rule::Real, σs::𝑀)::𝑀
     eq_expr(rule, data) && return σs
     return NO_MATCH
 end
 
-function check_expr_r(data, rule::Symbol, σs::𝑀; kwargs...)::𝑀
+function check_expr_r(data, rule::Symbol, σs::𝑀)::𝑀
     eq_expr(data, rule) && return σs
     return NO_MATCH
 end
 
 # main function
-# wrap_commutative = true binds a segment (`~~x` or `~~~x`) within a
-# commutative operation to a term, e.g. `a + b`, rather than a tuple, e.g.
-# `(a, b)`. An empty match is still `()`.
-check_expr_r(data, rule::Expr; wrap_commutative=false)::𝑀 =
-    check_expr_r(data, rule, [MatchDict()]; wrap_commutative)
+check_expr_r(data, rule::Expr)::𝑀 =
+    check_expr_r(data, rule, [MatchDict()])
 
-function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
+function check_expr_r(data, rule::Expr, σs::𝑀)::𝑀
     # @show :cer, data, rule
     if !iscall(rule)
         #@show :what_is, rule
@@ -88,9 +83,9 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
         arg_data, arg_rule = arguments(data), arguments(rule)
         if length(arg_data) > 1
             if iscommutative(opᵣ)
-                return check_commutative(arg_data, arg_rule, σs; wrap_commutative)
+                return check_commutative(arg_data, arg_rule, σs)
             else
-                return ceoaa(arg_data, arg_rule, σs; wrap_commutative)
+                return ceoaa(arg_data, arg_rule, σs)
             end
         else
             data, rule = (isempty(arg_data) ? arg_data : only(arg_data)), only(arg_rule)
@@ -105,7 +100,7 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
     # if there is a deflsot in the arguments
     i = findfirst(is_defslot, arguments(rule))
     if i !== nothing
-        return has_defslot(i, data, rule, σs; wrap_commutative)
+        return has_defslot(i, data, rule, σs)
     end
 
     # if there is a segment in the (only) argument
@@ -116,7 +111,7 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
          is_plus(first(arguments(rule))))
         )
         # @show :hi
-        return only_argument_is_segment(data, rule, σs; wrap_commutative)
+        return only_argument_is_segment(data, rule, σs)
     end
 
     # rule is a normal call, check operation and arguments
@@ -133,9 +128,10 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
     if opᵣ ∈ (:^, :sqrt, :exp) ||
         (opᵣ, 𝑜𝑝ₛ) ∈ ((:/,:^),
                       (:/,:*),
+                      (:/,:/),
                       )
 
-        return different_powers(data, rule, σs; wrap_commutative)
+        return different_powers(data, rule, σs)
     end
 
 
@@ -149,27 +145,27 @@ function check_expr_r(data, rule::Expr, σs::𝑀; wrap_commutative=false)::𝑀
     # segments variables means number of arguments might not match
     if (any(is_segment, arg_rule))
         # @show :has_any
-        return has_any_segment(𝑜𝑝ₛ, arg_data, opᵣ, arg_rule,  σs; wrap_commutative)
+        return has_any_segment(𝑜𝑝ₛ, arg_data, opᵣ, arg_rule,  σs)
     end
 
     if (any(is_plus, arg_rule))
         # @show :has_plus, arg_data, arg_rule
-        return has_any_plus(𝑜𝑝ₛ, arg_data, opᵣ, arg_rule,  σs; wrap_commutative)
+        return has_any_plus(𝑜𝑝ₛ, arg_data, opᵣ, arg_rule,  σs)
     end
 
 
     (length(arg_data) != length(arg_rule)) && return MatchDict[]
     if iscommutative(opᵣ)
-        σ′s = check_commutative(arg_data, arg_rule, σs; wrap_commutative)
+        σ′s = check_commutative(arg_data, arg_rule, σs)
         return isempty(σ′s) ? NO_MATCH : σ′s
     end
     # normal checks
-    return ceoaa(arg_data, arg_rule, σs; wrap_commutative)
+    return ceoaa(arg_data, arg_rule, σs)
 end
 
 # check expression of all arguments
 # elements of arg_rule can be Expr or Real
-function ceoaa(arg_data, arg_rule, σs::𝑀; wrap_commutative=false)::𝑀
+function ceoaa(arg_data, arg_rule, σs::𝑀)::𝑀
     if all(is_𝑋, arg_rule) && !any(is_op, arg_rule)
         nseg = count(is_segment, arg_rule) # no segment? need same wild
         iszero(nseg) && count(is_slot, arg_rule) != length(arg_data) &&
@@ -177,14 +173,14 @@ function ceoaa(arg_data, arg_rule, σs::𝑀; wrap_commutative=false)::𝑀
     end
     σs == NO_MATCH && return NO_MATCH
     if (any(is_segment, arg_rule))
-        return has_any_segment(nothing, arg_data, nothing, arg_rule,  σs; wrap_commutative)
+        return has_any_segment(nothing, arg_data, nothing, arg_rule,  σs)
     end
     if (any(is_plus, arg_rule))
-        return has_any_plus(nothing, arg_data, nothing, arg_rule,  σs; wrap_commutative)
+        return has_any_plus(nothing, arg_data, nothing, arg_rule,  σs)
     end
     σ′s = σs
     for (a, b) in zip(arg_data, arg_rule)
-        σ′s = check_expr_r(a, b, σ′s; wrap_commutative)
+        σ′s = check_expr_r(a, b, σ′s)
         σ′s == NO_MATCH && return NO_MATCH
     end
     return σ′s
@@ -215,7 +211,7 @@ function just_variable(data, rule, σs::𝑀)::𝑀
 end
 
 # expression has defslot
-function has_defslot(i, data, rule, σs; wrap_commutative=false)
+function has_defslot(i, data, rule, σs)
     # @show :has_defslot, data, rule
     op = operation(rule)
     if op ∈ (:^, :/)
@@ -228,13 +224,13 @@ function has_defslot(i, data, rule, σs; wrap_commutative=false)
 
     # build rule expr without defslot and check it
     newr = Expr(:call, operation(rule), ps...) # not pterm here!
-    σ′s = check_expr_r(data, newr, σs; wrap_commutative)
+    σ′s = check_expr_r(data, newr, σs)
     σ′s != MatchDict[] && return σ′s # had a match
 
     # if no normal match, check only the non-defslot part of the rule
     deleteat!(ps, i)
     tmp = pterm(operation(rule), ps)
-    σs = check_expr_r(data, tmp, σs; wrap_commutative)
+    σs = check_expr_r(data, tmp, σs)
     σs == MatchDict[] && return MatchDict[]
 
     var = varname(qᵢ)
@@ -243,7 +239,7 @@ function has_defslot(i, data, rule, σs; wrap_commutative=false)
 
 end
 
-function only_argument_is_segment(data, rule, σs, op=nothing; wrap_commutative=false)
+function only_argument_is_segment(data, rule, σs, op=nothing)
     # @show :only_argument_is_segment, data, rule
     !iscall(data) && return MatchDict[]
     opₛ, opᵣ = Symbol(operation(data)), operation(rule)
@@ -255,8 +251,7 @@ function only_argument_is_segment(data, rule, σs, op=nothing; wrap_commutative=
     args = tuple(arguments(data)...)
     is_plus(seg) && isempty(args) && return MatchDict[]
     _segment_guard(seg, args) || return MatchDict[]
-    val = _segment_value(args, opₛ, opᵣ; wrap_commutative)
-    _merge_single_expr(σs, var, val)
+    _merge_single_expr(σs, var, args)
 end
 
 function has_rational(data, rule, σs)
@@ -272,7 +267,7 @@ end
 
 # make powers equivalent for checking
 # e.g. sqrt(x) --> x^(1//2)
-function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
+function different_powers(data, rule, σs::𝑀)::𝑀
     # @show :different_powers, data, rule
     opᵣ, opₛ = operation(rule), Symbol(operation(data))
     arg_data = arguments(data)
@@ -282,7 +277,7 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
     if opᵣ === :^
         # try first normal checks
         if (opₛ === :^)
-            σ′s = ceoaa(arg_data, arg_rule, σs; wrap_commutative)
+            σ′s = ceoaa(arg_data, arg_rule, σs)
             !isempty(σ′s) && return σ′s
         end
 
@@ -345,7 +340,7 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
             return MatchDict[]
 
         end
-        return ceoaa(fad, arg_rule, σs; wrap_commutative)
+        return ceoaa(fad, arg_rule, σs)
 
     elseif opᵣ === :sqrt
         if (opₛ === :sqrt)
@@ -357,7 +352,7 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
             return MatchDict[]
         end
 
-        return ceoaa(tocheck, arg_rule, σs; wrap_commutative)
+        return ceoaa(tocheck, arg_rule, σs)
 
     elseif opᵣ === :exp
         if (opₛ === :exp)
@@ -369,20 +364,21 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
             return MatchDict[]
         end
 
-        return ceoaa(tocheck, arg_rule, σs; wrap_commutative)
+        return ceoaa(tocheck, arg_rule, σs)
     elseif (opᵣ, opₛ) == (:/, :*)
         # rule is / but may be canonicalized to
         # turn rule into ^-1 terms and check commutatively
+        return check_commutative(arg_data, _rule_as_powers(rule), σs)
 
-        u,v = arguments(rule)
-        vs = _is_operation(*)(v) ? arguments(v) : (v,)
-        vs′ = map(_invert_expr, vs)
-        arg_rule′ = if u == 1
-            vs′
-        else
-            Any[u, vs′...]
-        end
-        return check_commutative(arg_data, arg_rule′, σs; wrap_commutative)
+    elseif (opᵣ, opₛ) == (:/, :/)
+        # the matches numerator to numerator and denominator to denominator,
+        # and those comparing both as products of powers: e.g. the rule
+        # `(~u)^(~p) / ~x` and the subject `1 / (x * log(x))`, as
+        # `[(~u)^(~p), (~x)^-1]` and `[x^-1, log(x)^-1]`. Both are kept, as a
+        # match of one kind may conflict with the rest of the pattern.
+        σ′s = ceoaa(arg_data, arg_rule, σs)
+        σ″s = check_commutative(_data_as_powers(data), _rule_as_powers(rule), σs)
+        return unique!(vcat(σ′s, σ″s))
 
     elseif (opᵣ, opₛ) == (:/, :^)
         # :(1/~x^~n) ~ x^(-n)
@@ -400,24 +396,21 @@ function different_powers(data, rule, σs::𝑀; wrap_commutative=false)::𝑀
             end
 
             b′ = pterm(:^, (u, v′))
-            if a == 1
-                rule′ = b′
-            else
-                rule′ = pterm(:*, (a, b′))
-            end
+        elseif is_operation(:sqrt)(b) # 1/sqrt(u) is u^(-1//2)
+            # the exponent as a value: it compares equal to a symbolic -1/2
+            b′ = pterm(:^, (only(arguments(b)), -1//2))
         else
-            rule′ = Expr(:call, :^, b, -1)
+            b′ = Expr(:call, :^, b, -1)
         end
-        if !(isa(a, Number) && isone(a))
-            rule′ = Expr(:call, :*, a, rule′)
-        end
-        return check_expr_r(data, rule′, σs; wrap_commutative)
+        # multiply by a once
+        rule′ = (isa(a, Number) && isone(a)) ? b′ : Expr(:call, :*, a, b′)
+        return check_expr_r(data, rule′, σs)
 
     #end
     elseif (opᵣ, opₛ) == (:*, :/)
         u, v = arg_data
         v′ = sterm(^, [v, -1])
-        return check_commutative((u, v′), arg_rule,  σs; wrap_commutative)
+        return check_commutative((u, v′), arg_rule,  σs)
     end
 end
 
@@ -429,48 +422,11 @@ function neim_rewrite(data, rule)
 
         neim_pass = true
 
-        n = arg_data[1]
-        d = arg_data[2]
-        # then push the denominator of data up with negative power
-        sostituto = Any[]
-        if iscall(d) && opₛ == :^ #(operation(d)==^)
-
-            a, b, c... =  arg_data
-            val = sterm(^, (a,b))
-            push!(sostituto, val)
-
-        elseif iscall(d) && opₛ == :*
-            # push!(sostituto, map(x->x^-1,arguments(d))...)
-            for factor in arguments(d)
-                val = sterm(^, (factor, -1))
-                push!(sostituto, val)
-            end
-        elseif iscall(d) && Symbol(operation(d)) == :^
-            a,b = arguments(d)
-            m = sterm(-, (b,))
-            val = sterm(^, (a, m))
-            push!(sostituto, val)
-        else
-            val = sterm(^, (d, -1))
-            push!(sostituto, val)
-        end
-
-        new_arg_data = Any[]
-
-        if iscall(n)
-            if Symbol(operation(n)) === :*
-                append!(new_arg_data, arguments(n))
-            else
-                push!(new_arg_data, n)
-            end
-        elseif !_isone(n)
-            push!(new_arg_data, n)
-            # else dont push anything bc *1 gets canceled
-        end
-
-        append!(new_arg_data, sostituto)
-
-        arg_data = new_arg_data
+        # the numerator's factors, then each factor of the denominator with a
+        # negative power. (The denominator was tested with the data's own
+        # operation, always `/` here, so a product denominator was inverted
+        # as a whole, giving too few factors.)
+        arg_data = _data_as_powers(data)
 
         # printdb(4,"Applying neim trick, new arg_data is $arg_data")
     end
@@ -478,23 +434,12 @@ function neim_rewrite(data, rule)
 
 end
 
-# The value bound to a segment. With `wrap_commutative`, a segment within
-# a commutative operation binds to a term, e.g. `a + b`, rather than the
-# tuple `(a, b)`. A single value is not wrapped and an empty match stays `()`.
-#
-# A guard on a segment (`~~x::pred`) is always passed the tuple, even when
-# the bound value is wrapped.
+# A guard on a segment (`~~x::pred`) is passed the tuple of matched values.
 _segment_guard(segpat, vals::Tuple) =
     !has_predicate(segpat) || _evalguard(get_predicate(segpat), vals)
 
-function _segment_value(vals::Tuple, opₛ, opᵣ; wrap_commutative=false)
-    (wrap_commutative && iscommutative(opᵣ)) || return vals
-    length(vals) ≤ 1 && return isempty(vals) ? vals : only(vals)
-    sterm(opₛ, collect(vals))
-end
-
 function has_any_segment(𝑜𝑝ₛ, arg_data,
-                         opᵣ, arg_rule, σs; wrap_commutative=false)
+                         opᵣ, arg_rule, σs)
     # @show :has_any_segment, arg_data, arg_rule
     σs == NO_MATCH && return NO_MATCH
     seg, notseg, seg_positions = _split_segments(arg_rule)
@@ -514,12 +459,11 @@ function has_any_segment(𝑜𝑝ₛ, arg_data,
             var = varname(v)
             vals = tuple(arg_data...)
             _segment_guard(v, vals) || return MatchDict[]
-            val = _segment_value(vals, 𝑜𝑝ₛ, opᵣ; wrap_commutative)
             for σ ∈ σs
                 if haskey(σ, var)
-                    isequal(val, σ[var]) && push!(σ′s, σ)
+                    isequal(vals, σ[var]) && push!(σ′s, σ)
                 else
-                    push!(σ′s, match_dict(σ, var => val))
+                    push!(σ′s, match_dict(σ, var => vals))
                 end
             end
             return σ′s
@@ -537,7 +481,7 @@ function has_any_segment(𝑜𝑝ₛ, arg_data,
             for i ∈ eachindex(seg)
                 var = varname(seg[i])
                 _segment_guard(seg[i], assignment[i]) || (ok = false; break)
-                val = _segment_value(assignment[i], 𝑜𝑝ₛ, opᵣ; wrap_commutative)
+                val = assignment[i]
                 if haskey(σ′, var)
                     isequal(val, σ′[var]) || (ok = false; break)
                 else
@@ -577,7 +521,7 @@ function has_any_segment(𝑜𝑝ₛ, arg_data,
                 assignment = _assign_segments_greedy(val, seg_is_plus)
                 assignment === nothing && continue
                 for σ ∈ σs
-                    σ′s = check_expr_r(sub′, pat′, [σ]; wrap_commutative)
+                    σ′s = check_expr_r(sub′, pat′, [σ])
                     if σ′s != NO_MATCH
                         # we found a match, assign the rest across the segments
                         for σ′ ∈ σ′s
@@ -585,7 +529,7 @@ function has_any_segment(𝑜𝑝ₛ, arg_data,
                             ok = true
                             for i ∈ eachindex(seg)
                                 svar = seg_varnames[i]
-                                sval = _segment_value(assignment[i], 𝑜𝑝ₛ, opᵣ; wrap_commutative)
+                                sval = assignment[i]
                                 if haskey(τ, svar)
                                     isequal(sval, τ[svar]) || (ok = false; break)
                                 else
@@ -621,7 +565,7 @@ function has_any_segment(𝑜𝑝ₛ, arg_data,
                 for (i,pat) ∈ enumerate(arg_rule)
                     nomatch && continue
                     if l > nsegs || i != seg_positions[l]
-                        σ′s = check_expr_r(arg_data[j], pat, σ′s; wrap_commutative)
+                        σ′s = check_expr_r(arg_data[j], pat, σ′s)
                         σ′s == NO_MATCH && (nomatch = true)
                         j = j + 1
                     else
@@ -668,7 +612,7 @@ function has_any_segment(𝑜𝑝ₛ, arg_data,
             σ′′′s = union_merge(σs, σ′′′)
             sub′ = sterm(𝑜𝑝ₛ, arg_data)
             pat′ = pterm(opᵣ, notseg)
-            σ′′′s = check_expr_r(sub′, pat′, σ′′′s; wrap_commutative)
+            σ′′′s = check_expr_r(sub′, pat′, σ′′′s)
             σ′′′s != NO_MATCH && append!(σ′′s, σ′′′s)
         end
 
@@ -727,10 +671,10 @@ end
 
 
 function has_any_plus(𝑜𝑝ₛ, arg_data,
-                      opᵣ, arg_rule, σs; wrap_commutative=false)
+                      opᵣ, arg_rule, σs)
     # @show :has_any_plus, arg_data, arg_rule
     has_any_segment(𝑜𝑝ₛ, arg_data,
-                      opᵣ, arg_rule, σs; wrap_commutative)
+                      opᵣ, arg_rule, σs)
 end
 @inline function _commutative_priority(pat)
     is_defslot(pat) && return 3
@@ -755,7 +699,7 @@ end
 # a duplicate for pruning purposes.
 @inline _cheap_isequal(a, b) = a === b || (typeof(a) === typeof(b) && isequal(a, b))
 
-function _check_commutative!(out, used, arg_data, arg_rule, order, k, σs::𝑀; wrap_commutative=false)::𝑀
+function _check_commutative!(out, used, arg_data, arg_rule, order, k, σs::𝑀)::𝑀
     # @show :check_commutative
     σs == NO_MATCH && return out
     k > length(order) && return _append_unique!(out, σs)
@@ -786,22 +730,22 @@ function _check_commutative!(out, used, arg_data, arg_rule, order, k, σs::𝑀;
         end
         isdup && continue
 
-        σ′s = check_expr_r(val, pat, σs; wrap_commutative)
+        σ′s = check_expr_r(val, pat, σs)
         σ′s == NO_MATCH && continue
         used[j] = true
-        _check_commutative!(out, used, arg_data, arg_rule, order, k + 1, σ′s; wrap_commutative)
+        _check_commutative!(out, used, arg_data, arg_rule, order, k + 1, σ′s)
         used[j] = false
     end
     return out
 end
 
-function check_commutative(arg_data, arg_rule, σs::𝑀; wrap_commutative=false)::𝑀
+function check_commutative(arg_data, arg_rule, σs::𝑀)::𝑀
     # commutative checks
     length(arg_data) != length(arg_rule) && return NO_MATCH
 
     order = sortperm(collect(eachindex(arg_rule)); by = i -> _commutative_priority(arg_rule[i]))
     used = falses(length(arg_data))
     σ′′s = MatchDict[]
-    _check_commutative!(σ′′s, used, arg_data, arg_rule, order, 1, σs; wrap_commutative)
+    _check_commutative!(σ′′s, used, arg_data, arg_rule, order, 1, σs)
     return isempty(σ′′s) ? NO_MATCH : σ′′s
 end

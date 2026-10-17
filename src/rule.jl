@@ -15,8 +15,8 @@ end
 # `f` is not a type parameter: with thousands of rules, a parameter would
 # mean compiling a method for calling each rule.
 
-function (r::Rule)(sub; kwargs...)
-    σ = _match(r.lhs, sub; kwargs...)
+function (r::Rule)(sub)
+    σ = _match(r.lhs, sub)
     σ === nothing && return nothing
     symtype(sub) === Expr ? _rewrite(σ, r.rhs, Expr) : r.f(σ)
 end
@@ -32,7 +32,7 @@ Create a rule which rewrites a subject matching the pattern `lhs` into
 `lhs` is a pattern, as for [`@pattern`](@ref). `rhs` is Julia code: it is
 compiled into a function of the match where the macro is called, so
 functions and variables it refers to are those of the calling module. A
-segment (`~~x`) is replaced by its tuple (or term, with `wrap_commutative`).
+segment (`~~x`) is replaced by its tuple.
 
 For a symbolic subject `rhs` is evaluated; for an `Expr` subject, the
 matched values are substituted into `rhs` and an `Expr` is returned.

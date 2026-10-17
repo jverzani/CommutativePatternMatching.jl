@@ -9,12 +9,12 @@ include("rule.jl")
 
 
 # interface to be extended by a package
-function _eachmatch(pat, sub; kwargs...)
-    check_expr_r(sub, pat; kwargs...)
+function _eachmatch(pat, sub)
+    check_expr_r(sub, pat)
 end
 
-function _match(pat, sub; kwargs...)
-    σs = _eachmatch(pat, sub; kwargs...)
+function _match(pat, sub)
+    σs = _eachmatch(pat, sub)
     isempty(σs) && return nothing
     first(σs)
 end

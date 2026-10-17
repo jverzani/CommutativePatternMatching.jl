@@ -48,9 +48,7 @@ function rule_tests()
             out = RulesA.r_seg(S(:(a + b + c)))
             @test any(u -> same(out, S(u)), (:(2a), :(2b), :(2c)))
 
-            # keyword arguments are passed to the matcher
-            out = RulesA.r_wrap(S(:(a + b + c)); wrap_commutative = true)
-            @test any(u -> same(out, S(u)), (:(a + b), :(a + c), :(b + c)))
+            # a segment is replaced by its tuple
             @test RulesA.r_wrap(S(:(a + b + c))) isa Tuple
         end
     end

@@ -1,10 +1,10 @@
 ## Helpers for comparing matches in a backend-independent way
 
-eachm(pat, sub; kwargs...) = CPM._eachmatch(pat, sub; kwargs...)
+eachm(pat, sub) = CPM._eachmatch(pat, sub)
 
 # first match or `nothing`
-function matchone(pat, sub; kwargs...)
-    σs = eachm(pat, sub; kwargs...)
+function matchone(pat, sub)
+    σs = eachm(pat, sub)
     isempty(σs) ? nothing : first(σs)
 end
 

@@ -36,10 +36,6 @@ function backend_tests()
         @test binds(matchone(:((~F)(~~y::(u -> length(u) == 3))), :(f(a, b, c))),
                     :F => :f, :y => (:a, :b, :c))
         @test matchone(:((~F)(~~y::(u -> length(u) == 2))), :(f(a, b, c))) === nothing
-
-        # wrap_commutative only applies to commutative operations
-        σ = matchone(:(f(~x, ~~~y)), :(f(a, b, c)); wrap_commutative = true)
-        @test σ[:y] == (:b, :c)
     end
 
     @testset "$(B.name) (canonicalizing)" for B ∈ filter(B -> B.canonicalizes, BACKENDS)

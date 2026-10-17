@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reference — CommutativePatternMatching.jl</title>
+  <link rel="stylesheet" href="../assets/materialdocs.css?v=79698eba">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap">
+  <meta name="title" content="Reference — CommutativePatternMatching.jl">
+  <meta property="og:title" content="Reference — CommutativePatternMatching.jl">
+  <meta property="twitter:title" content="Reference — CommutativePatternMatching.jl">
+  <meta name="description" content="Documentation for CommutativePatternMatching.jl.">
+  <meta property="og:description" content="Documentation for CommutativePatternMatching.jl.">
+  <meta property="twitter:description" content="Documentation for CommutativePatternMatching.jl.">
+  <meta property="og:url" content="https://jverzani.github.io/CommutativePatternMatching.jl/reference/">
+  <meta property="twitter:url" content="https://jverzani.github.io/CommutativePatternMatching.jl/reference/">
+  <link rel="canonical" href="https://jverzani.github.io/CommutativePatternMatching.jl/reference/">
+  <script>
+    (function(){
+      document.documentElement.classList.add('no-transition');
+      var t=localStorage.getItem('md-theme');if(t)document.documentElement.setAttribute('data-theme',t);
+      window.addEventListener('load',function(){setTimeout(function(){document.documentElement.classList.remove('no-transition');},50);});
+    })()
+  </script>
+</head>
+<body data-warn-outdated>
+  <header class="md-navbar">
+    <button id="md-hamburger" class="md-icon-btn md-hamburger" aria-label="Toggle navigation" aria-expanded="false"><svg class="md-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
+    <span class="md-navbar-title">CommutativePatternMatching.jl</span>
+    <span class="md-navbar-spacer"></span>
+    <button id="md-search-btn" class="md-search-bar" aria-label="Search documentation" aria-expanded="false">
+      <svg class="md-icon md-search-bar-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <span class="md-search-bar-label">Search docs</span>
+      <kbd class="md-search-bar-kbd">Ctrl K</kbd>
+    </button>
+    <div id="md-version" class="md-version" hidden>
+      <button id="md-version-btn" class="md-version-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Select documentation version">
+        <span id="md-version-current" class="md-version-current"></span>
+        <svg class="md-icon md-version-caret" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5z"/></svg>
+      </button>
+      <ul id="md-version-menu" class="md-version-menu" role="listbox" hidden></ul>
+    </div>
+    <a class="md-icon-btn md-repo-link" href="https://github.com/jverzani/CommutativePatternMatching.jl" title="View the repository on GitHub" aria-label="View the repository on GitHub" rel="noopener" target="_blank"><svg class="md-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1.1.9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0012 .3z"/></svg><span class="md-repo-label">GitHub</span></a>
+    <button id="md-theme-toggle" class="md-icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode"><svg class="md-icon md-icon-light" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg><svg class="md-icon md-icon-dark" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg></button>
+  </header>
+  <div class="md-layout">
+    <nav class="md-sidebar">
+      <a href="../">Home</a>
+      <a href="../patterns/">Patterns</a>
+      <a href="../reference/" class="md-nav-active">Reference</a>
+    </nav>
+    <main class="md-content">
+      <article class="md-article">
+      <div class="md-article-actions"><a class="md-icon-btn md-edit-link" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/main/docs/src/reference.md" title="Edit source on GitHub" aria-label="Edit source on GitHub"><svg class="md-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></a></div>
+<h1 id="Reference" class="md-heading">Reference<a href="#Reference" class="md-heading-anchor" aria-label="Link to this section">#</a></h1>
+<div class="md-index">
+<ul>
+<li><a href="#CommutativePatternMatching.Rule"><code>CommutativePatternMatching.Rule</code></a></li>
+<li><a href="#CommutativePatternMatching._eachmatch-Tuple{Any, Any}"><code>CommutativePatternMatching._eachmatch</code></a></li>
+<li><a href="#CommutativePatternMatching._match-Tuple{Any, Any}"><code>CommutativePatternMatching._match</code></a></li>
+<li><a href="#CommutativePatternMatching._rewrite-Tuple{Base.ImmutableDict{Symbol, Any}, Any}"><code>CommutativePatternMatching._rewrite</code></a></li>
+<li><a href="#CommutativePatternMatching.@pattern-Tuple{Any}"><code>CommutativePatternMatching.@pattern</code></a></li>
+<li><a href="#CommutativePatternMatching.@rule-Tuple{Any}"><code>CommutativePatternMatching.@rule</code></a></li>
+</ul>
+</div>
+<div class="md-docstring" id="CommutativePatternMatching.Rule">
+<div class="md-docstring-header">
+<h4 class="md-docstring-binding"><code>CommutativePatternMatching.Rule</code></h4>
+<a class="md-docstring-source" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/6abb0698149255348d54abf7bed802a800d854c6/src/rule.jl#L3-L9" title="View source">source</a>
+</div>
+<div class="md-docstring-content">
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">Rule</code></pre>
+</div>
+<p>A rule created by <a href="../reference/#CommutativePatternMatching.@rule-Tuple{Any}"><code class="md-code-inline">@rule</code></a>. Call it on a subject to rewrite it: <code class="md-code-inline">rule(sub)</code> returns the rewritten term, or <code class="md-code-inline">nothing</code> if <code class="md-code-inline">sub</code> does not match.</p>
+</div>
+</div>
+<div class="md-docstring" id="CommutativePatternMatching._eachmatch-Tuple{Any, Any}">
+<div class="md-docstring-header">
+<h4 class="md-docstring-binding"><code>CommutativePatternMatching._eachmatch</code> — <span class="md-docstring-sig">Tuple{Any, Any}</span></h4>
+<a class="md-docstring-source" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/6abb0698149255348d54abf7bed802a800d854c6/src/CommutativePatternMatching.jl#L12-L18" title="View source">source</a>
+</div>
+<div class="md-docstring-content">
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">_eachmatch(pat, sub)</code></pre>
+</div>
+<p>Return a vector of the matches of the pattern <code class="md-code-inline">pat</code> to the subject <code class="md-code-inline">sub</code>, each a dictionary from wildcard names to their values. The vector is empty if there is no match.</p>
+</div>
+</div>
+<div class="md-docstring" id="CommutativePatternMatching._match-Tuple{Any, Any}">
+<div class="md-docstring-header">
+<h4 class="md-docstring-binding"><code>CommutativePatternMatching._match</code> — <span class="md-docstring-sig">Tuple{Any, Any}</span></h4>
+<a class="md-docstring-source" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/6abb0698149255348d54abf7bed802a800d854c6/src/CommutativePatternMatching.jl#L23-L28" title="View source">source</a>
+</div>
+<div class="md-docstring-content">
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">_match(pat, sub)</code></pre>
+</div>
+<p>Return the first match of the pattern <code class="md-code-inline">pat</code> to the subject <code class="md-code-inline">sub</code>, or <code class="md-code-inline">nothing</code> if there is no match. See <a href="../reference/#CommutativePatternMatching._eachmatch-Tuple{Any, Any}"><code class="md-code-inline">_eachmatch</code></a>.</p>
+</div>
+</div>
+<div class="md-docstring" id="CommutativePatternMatching._rewrite-Tuple{Base.ImmutableDict{Symbol, Any}, Any}">
+<div class="md-docstring-header">
+<h4 class="md-docstring-binding"><code>CommutativePatternMatching._rewrite</code> — <span class="md-docstring-sig">Tuple{Base.ImmutableDict{Symbol, Any}, Any}</span></h4>
+<a class="md-docstring-source" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/6abb0698149255348d54abf7bed802a800d854c6/src/rule.jl#L86-L100" title="View source">source</a>
+</div>
+<div class="md-docstring-content">
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">_rewrite(σ, rhs, [S])</code></pre>
+</div>
+<p>Rewrite the template <code class="md-code-inline">rhs</code> using the match <code class="md-code-inline">σ</code>.</p>
+<p>If <code class="md-code-inline">rhs</code> is a function, it is called on <code class="md-code-inline">σ</code>, as for a rule from <code class="md-code-inline">@rule</code>.</p>
+<p>If <code class="md-code-inline">rhs</code> is an expression, its wildcards are replaced by their values. For an <code class="md-code-inline">Expr</code> subject (<code class="md-code-inline">S == Expr</code>) the result is an expression. Otherwise each call is evaluated: an operation given by name is looked up in <code class="md-code-inline">Main</code> and <code class="md-code-inline">Base</code>, so to use a function from another module use <code class="md-code-inline">@rule</code>, or splice the function into the template (<code class="md-code-inline">:($f(~x))</code>).</p>
+<p>The subject type <code class="md-code-inline">S</code> is found from the values in <code class="md-code-inline">σ</code> if not given.</p>
+</div>
+</div>
+<div class="md-docstring" id="CommutativePatternMatching.@pattern-Tuple{Any}">
+<div class="md-docstring-header">
+<h4 class="md-docstring-binding"><code>CommutativePatternMatching.@pattern</code> — <span class="md-docstring-sig">Tuple{Any}</span></h4>
+<a class="md-docstring-source" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/6abb0698149255348d54abf7bed802a800d854c6/src/pattern.jl#L3-L30" title="View source">source</a>
+</div>
+<div class="md-docstring-content">
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">@pattern expr</code></pre>
+</div>
+<p>Create a pattern from <code class="md-code-inline">expr</code>, as <code class="md-code-inline">:(expr)</code> would, except each guard of a wildcard (<code class="md-code-inline">~x::pred</code>, <code class="md-code-inline">~~x::pred</code>, <code class="md-code-inline">~~~x::pred</code>) is evaluated where the macro is called and spliced into the pattern as a value.</p>
+<p>A guard in a quoted pattern, <code class="md-code-inline">:(~x::isfoo)</code>, is looked up by name in <code class="md-code-inline">Main</code> and <code class="md-code-inline">Base</code> when the pattern is matched, so a predicate defined in another package is not found. With <code class="md-code-inline">@pattern</code> the guard is resolved in the calling module, as is any function a guard such as <code class="md-code-inline">(u -&gt; isfoo(u))</code> refers to.</p>
+<p>Values may be interpolated with <code class="md-code-inline">$</code>, as with a quoted expression.</p>
+<p><strong>Examples</strong></p>
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">julia&gt; module Ext
+           using CommutativePatternMatching
+           isfoo(x) = x == :a
+           pat = @pattern sin(~x::isfoo)
+       end;
+
+julia&gt; CommutativePatternMatching._eachmatch(Ext.pat, :(sin(a)))
+1-element Vector{Base.ImmutableDict{Symbol, Any}}:
+ Base.ImmutableDict(:x =&gt; :a)</code></pre>
+</div>
+</div>
+</div>
+<div class="md-docstring" id="CommutativePatternMatching.@rule-Tuple{Any}">
+<div class="md-docstring-header">
+<h4 class="md-docstring-binding"><code>CommutativePatternMatching.@rule</code> — <span class="md-docstring-sig">Tuple{Any}</span></h4>
+<a class="md-docstring-source" href="https://github.com/jverzani/CommutativePatternMatching.jl/blob/6abb0698149255348d54abf7bed802a800d854c6/src/rule.jl#L26-L58" title="View source">source</a>
+</div>
+<div class="md-docstring-content">
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">@rule lhs =&gt; rhs</code></pre>
+</div>
+<p>Create a rule which rewrites a subject matching the pattern <code class="md-code-inline">lhs</code> into <code class="md-code-inline">rhs</code>, with the wildcards of <code class="md-code-inline">rhs</code> replaced by their matched values.</p>
+<p><code class="md-code-inline">lhs</code> is a pattern, as for <a href="../reference/#CommutativePatternMatching.@pattern-Tuple{Any}"><code class="md-code-inline">@pattern</code></a>. <code class="md-code-inline">rhs</code> is Julia code: it is compiled into a function of the match where the macro is called, so functions and variables it refers to are those of the calling module. A segment (<code class="md-code-inline">~~x</code>) is replaced by its tuple.</p>
+<p>For a symbolic subject <code class="md-code-inline">rhs</code> is evaluated; for an <code class="md-code-inline">Expr</code> subject, the matched values are substituted into <code class="md-code-inline">rhs</code> and an <code class="md-code-inline">Expr</code> is returned.</p>
+<p><strong>Examples</strong></p>
+<div class="md-code-block">
+<button class="md-copy-btn" title="Copy to clipboard" aria-label="Copy code"><span class="md-copy-icon">⧉</span><span class="md-copy-feedback">Copied!</span></button>
+<pre><code class="language-julia">julia&gt; using CommutativePatternMatching, SymEngine
+
+julia&gt; @vars x;
+
+julia&gt; r = @rule (~x)^(~n::isinteger) =&gt; (~x)^(~n + 1) / (~n + 1);
+
+julia&gt; r(x^2)
+(1/3)*x^3
+
+julia&gt; r(:(x^2))
+:(x ^ (2 + 1) / (2 + 1))
+
+julia&gt; r(sin(x)) === nothing
+true</code></pre>
+</div>
+</div>
+</div>
+      </article>
+      <footer class="md-footer">
+<p>Built with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and <a href="https://github.com/mthelm85/MaterialDocs.jl">MaterialDocs.jl</a>.</p>
+      </footer>
+    </main>
+    <aside class="md-toc">
+      <div class="md-toc-inner">
+        <p class="md-toc-title">On this page</p>
+      </div>
+    </aside>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/julia.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/julia-repl.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script src="../siteinfo.js"></script>
+  <script src="../../versions.js"></script>
+  <script src="../assets/materialdocs.js?v=79698eba"></script>
+</body>
+</html>

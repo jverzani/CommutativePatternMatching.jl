@@ -50,12 +50,12 @@ A pattern can only have one wildcard of a given name (no ~x + ~~x, say).
 # TODO ~a*(~b*~c) currently will not match a*b*c . a fix is possible
 
 # for when the rule contains a symbol, like ℯ, or a literal number
-function check_expr_r(data, rule::Real, σs::𝑀)::𝑀
+function check_expr_r(@nospecialize(data), rule::Real, σs::𝑀)::𝑀
     eq_expr(rule, data) && return σs
     return NO_MATCH
 end
 
-function check_expr_r(data, rule::Symbol, σs::𝑀)::𝑀
+function check_expr_r(@nospecialize(data), rule::Symbol, σs::𝑀)::𝑀
     eq_expr(data, rule) && return σs
     return NO_MATCH
 end
@@ -64,7 +64,7 @@ end
 check_expr_r(data, rule::Expr)::𝑀 =
     check_expr_r(data, rule, [MatchDict()])
 
-function check_expr_r(data, rule::Expr, σs::𝑀)::𝑀
+function check_expr_r(@nospecialize(data), rule::Expr, σs::𝑀)::𝑀
     # @show :cer, data, rule
     if !iscall(rule)
         #@show :what_is, rule
@@ -165,7 +165,7 @@ end
 
 # check expression of all arguments
 # elements of arg_rule can be Expr or Real
-function ceoaa(arg_data, arg_rule, σs::𝑀)::𝑀
+function ceoaa(@nospecialize(arg_data), arg_rule, σs::𝑀)::𝑀
     if all(is_𝑋, arg_rule) && !any(is_op, arg_rule)
         nseg = count(is_segment, arg_rule) # no segment? need same wild
         iszero(nseg) && count(is_slot, arg_rule) != length(arg_data) &&
@@ -187,7 +187,7 @@ function ceoaa(arg_data, arg_rule, σs::𝑀)::𝑀
 end
 
 # match a single variable
-function just_variable(data, rule, σs::𝑀)::𝑀
+function just_variable(@nospecialize(data), rule, σs::𝑀)::𝑀
     #@show :jv, data, rule
     @assert is_𝑋(rule)
     var = varname(rule)
@@ -211,7 +211,7 @@ function just_variable(data, rule, σs::𝑀)::𝑀
 end
 
 # expression has defslot
-function has_defslot(i, data, rule, σs)
+function has_defslot(i, @nospecialize(data), rule, σs)
     # @show :has_defslot, data, rule
     op = operation(rule)
     if op ∈ (:^, :/)
@@ -239,7 +239,7 @@ function has_defslot(i, data, rule, σs)
 
 end
 
-function only_argument_is_segment(data, rule, σs, op=nothing)
+function only_argument_is_segment(@nospecialize(data), rule, σs, op=nothing)
     # @show :only_argument_is_segment, data, rule
     !iscall(data) && return MatchDict[]
     opₛ, opᵣ = Symbol(operation(data)), operation(rule)
@@ -267,7 +267,7 @@ end
 
 # make powers equivalent for checking
 # e.g. sqrt(x) --> x^(1//2)
-function different_powers(data, rule, σs::𝑀)::𝑀
+function different_powers(@nospecialize(data), rule, σs::𝑀)::𝑀
     # @show :different_powers, data, rule
     opᵣ, opₛ = operation(rule), Symbol(operation(data))
     arg_data = arguments(data)
@@ -414,7 +414,7 @@ function different_powers(data, rule, σs::𝑀)::𝑀
     end
 end
 
-function neim_rewrite(data, rule)
+function neim_rewrite(@nospecialize(data), rule)
     neim_pass = false
     arg_rule, arg_data = arguments(rule), arguments(data)
     opᵣ, opₛ = operation(rule), Symbol(operation(data))
@@ -438,7 +438,7 @@ end
 _segment_guard(segpat, vals::Tuple) =
     !has_predicate(segpat) || _evalguard(get_predicate(segpat), vals)
 
-function has_any_segment(𝑜𝑝ₛ, arg_data,
+function has_any_segment(𝑜𝑝ₛ, @nospecialize(arg_data),
                          opᵣ, arg_rule, σs)
     # @show :has_any_segment, arg_data, arg_rule
     σs == NO_MATCH && return NO_MATCH
@@ -642,7 +642,7 @@ end
 # plain `Vector{Any}` of assigned values, positionally matching `segs`/
 # `is_plus_flags` (not `var => val` pairs), so the caller can reuse its
 # own precomputed segment varnames without recomputing them here.
-function _assign_segments_greedy(vals, is_plus_flags)
+function _assign_segments_greedy(@nospecialize(vals), is_plus_flags)
     k = length(is_plus_flags)
     n = length(vals)
     p = 0
@@ -670,7 +670,7 @@ end
 
 
 
-function has_any_plus(𝑜𝑝ₛ, arg_data,
+function has_any_plus(𝑜𝑝ₛ, @nospecialize(arg_data),
                       opᵣ, arg_rule, σs)
     # @show :has_any_plus, arg_data, arg_rule
     has_any_segment(𝑜𝑝ₛ, arg_data,
@@ -699,7 +699,7 @@ end
 # a duplicate for pruning purposes.
 @inline _cheap_isequal(a, b) = a === b || (typeof(a) === typeof(b) && isequal(a, b))
 
-function _check_commutative!(out, used, arg_data, arg_rule, order, k, σs::𝑀)::𝑀
+function _check_commutative!(out, used, @nospecialize(arg_data), arg_rule, order, k, σs::𝑀)::𝑀
     # @show :check_commutative
     σs == NO_MATCH && return out
     k > length(order) && return _append_unique!(out, σs)
@@ -739,7 +739,7 @@ function _check_commutative!(out, used, arg_data, arg_rule, order, k, σs::𝑀)
     return out
 end
 
-function check_commutative(arg_data, arg_rule, σs::𝑀)::𝑀
+function check_commutative(@nospecialize(arg_data), arg_rule, σs::𝑀)::𝑀
     # commutative checks
     length(arg_data) != length(arg_rule) && return NO_MATCH
 

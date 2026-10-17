@@ -105,66 +105,31 @@ function shared_tests(B::Backend)
         @test binds(matchone(:(*(~~~a)), S(:(a * b * c))), :a => (a, b, c))
     end
 
-    @testset "wrap_commutative" begin
-        w = (; wrap_commutative = true)
-
-        # ~~~ segments of a commutative operation bind to a term
-        σs = eachm(:(~x + ~~~y), S(:(a + b + c)); w...)
-        @test length(σs) == 3
-        @test has_match(σs, :x => a, :y => S(:(b + c)))
-        @test has_match(σs, :x => c, :y => S(:(a + b)))
-
-        σs = eachm(:(~x * ~~~y), S(:(a * b * c)); w...)
-        @test has_match(σs, :x => a, :y => S(:(b * c)))
-
-        @test binds(matchone(:(+(~~~y)), S(:(a + b + c)); w...), :y => S(:(a + b + c)))
-        # nested within another call
-        @test has_match(eachm(:(sin(~x + ~~~y)), S(:(sin(a + b + c))); w...),
-                        :x => a, :y => S(:(b + c)))
-        # a single value is not wrapped
-        @test binds(matchone(:(~~~x + ~~~y), S(:(a + b)); w...), :x => a, :y => b) ||
-            binds(matchone(:(~~~x + ~~~y), S(:(a + b)); w...), :x => b, :y => a)
-
-        # ~~ segments are wrapped too; an empty match stays ()
-        σs = eachm(:(~x + ~~y), S(:(a + b + c)); w...)
-        @test length(σs) == 4
-        @test has_match(σs, :x => a, :y => S(:(b + c)))
-        @test has_match(σs, :x => S(:(a + b + c)), :y => ())
-        @test binds(matchone(:(*(~~y)), S(:(a * b * c)); w...), :y => S(:(a * b * c)))
-
-        # repeated segments compare the wrapped terms
-        @test binds(matchone(:(sin(+(~~~y)) + cos(+(~~~y))), S(:(sin(a + b) + cos(a + b))); w...),
-                    :y => S(:(a + b)))
-        @test matchone(:(sin(+(~~~y)) + cos(+(~~~y))), S(:(sin(a + b) + cos(a + c))); w...) === nothing
-
-        # a guard on a segment is passed the tuple, not the wrapped term
-        σs = eachm(:(~x + ~~~y::(u -> u isa Tuple && length(u) == 2)), S(:(a + b + c)); w...)
-        @test length(σs) == 3
-        @test has_match(σs, :x => a, :y => S(:(b + c)))
-        @test isempty(eachm(:(~x + ~~~y::(u -> !isa(u, Tuple))), S(:(a + b + c)); w...))
-
-        # default is a tuple
+    @testset "segments bind to tuples" begin
+        # in a commutative operation too
         @test has_match(eachm(:(~x + ~~~y), S(:(a + b + c))), :x => a, :y => (b, c))
+        @test has_match(eachm(:(~x + ~~y), S(:(a + b + c))), :x => a, :y => (b, c))
+        @test has_match(eachm(:(~x * ~~~y), S(:(a * b * c))), :x => a, :y => (b, c))
     end
 
-    @testset "segment guards ($(kw))" for kw ∈ ((;), (; wrap_commutative = true))
+    @testset "segment guards" begin
         sub = S(:(a + b + c))
         istup(n) = :(u -> u isa Tuple && length(u) == $n)
 
         # lone segment
-        @test binds(matchone(:(+(~~y::$(istup(3)))), sub; kw...), :y => (kw == (;) ? (a, b, c) : sub))
-        @test matchone(:(+(~~y::$(istup(2)))), sub; kw...) === nothing
+        @test binds(matchone(:(+(~~y::$(istup(3)))), sub), :y => (a, b, c))
+        @test matchone(:(+(~~y::$(istup(2)))), sub) === nothing
 
         # with another argument
-        @test length(eachm(:(~x + ~~y::$(istup(2))), sub; kw...)) == 3
-        @test length(eachm(:(~x + ~~y::$(istup(0))), sub; kw...)) ≥ 1
-        @test all(σ -> σ[:y] == (), eachm(:(~x + ~~y::$(istup(0))), sub; kw...))
-        @test isempty(eachm(:(~x + ~~y::$(istup(4))), sub; kw...))
+        @test length(eachm(:(~x + ~~y::$(istup(2))), sub)) == 3
+        @test length(eachm(:(~x + ~~y::$(istup(0))), sub)) ≥ 1
+        @test all(σ -> σ[:y] == (), eachm(:(~x + ~~y::$(istup(0))), sub))
+        @test isempty(eachm(:(~x + ~~y::$(istup(4))), sub))
 
         # segments only, filled greedily
-        @test binds(matchone(:(~~x + ~~y::$(istup(0))), sub; kw...),
-                    :x => (kw == (;) ? (a, b, c) : sub), :y => ())
-        @test matchone(:(~~x + ~~y::$(istup(1))), sub; kw...) === nothing
+        @test binds(matchone(:(~~x + ~~y::$(istup(0))), sub),
+                    :x => (a, b, c), :y => ())
+        @test matchone(:(~~x + ~~y::$(istup(1))), sub) === nothing
     end
 
     @testset "default slots" begin

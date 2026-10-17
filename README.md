@@ -5,3 +5,5 @@
 [![Build Status](https://github.com/jverzani/CommutativePatternMatching.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jverzani/CommutativePatternMatching.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 Provides a pattern matching function extended from that used for the rule-based methods of [SymbolicIntegration](https://github.com/JuliaSymbolics/SymbolicIntegration.jl).
+
+Originally designed to see if more rule-based integration patterns could be matched (cf. [RUBISymbolicIntegration](https://github.com/jverzani/RUBISymbolicIntegration.jl)).
